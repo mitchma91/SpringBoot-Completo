@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 //import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.mitchma91.mitchManuel.Exception.CustomeFieldValidationException;
+import com.mitchma91.mitchManuel.Exception.UsernameOrIdNotFound;
 import com.mitchma91.mitchManuel.dto.ChangePasswordForm;
 import com.mitchma91.mitchManuel.entity.User;
 import com.mitchma91.mitchManuel.repository.RoleRepository;
@@ -60,7 +62,15 @@ public class UserController {
 				//model.addAttribute("userForm", user);
 				model.addAttribute("listTab","active");
 
-			} catch (Exception e) {
+			} catch (CustomeFieldValidationException cfve) {
+				result.rejectValue(cfve.getFieldName(), null, cfve.getMessage());
+				model.addAttribute("userForm", user);
+				model.addAttribute("formTab","active");
+				model.addAttribute("userList", userService.getAllUsers());
+				model.addAttribute("roles",roleRepository.findAll());
+			}
+			
+			catch (Exception e) {
 				model.addAttribute("formErrorMessage",e.getMessage());
 				model.addAttribute("userForm", user);
 				model.addAttribute("formTab","active");
@@ -127,8 +137,8 @@ public class UserController {
 	public String deleteUser(Model model, @PathVariable(name="id") Long id) {
 		try {
 			userService.deleteUser(id);
-		} catch (Exception e) {
-			model.addAttribute("deleteError","The user could not be deleted.");
+		} catch (UsernameOrIdNotFound e) {
+			model.addAttribute("listErrorMessage",e.getMessage());
 		}
 		return getUserForm(model);
 	}
